@@ -2,6 +2,9 @@
 import React, { Component } from 'react';
 import {Formik} from "formik";
 import * as Yup from "yup";
+import axios from "axios";
+import swal from "sweetalert";
+
 const SignupSchema = Yup.object().shape({
   username: Yup.string()
     .min(2, "username is Too Short!")
@@ -17,7 +20,34 @@ const SignupSchema = Yup.object().shape({
   )
 });
 
+
 class Register extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      alert: null
+    };
+  }
+
+submitForm = (values) => {
+  axios
+  .post("http://localhost:8080/register",values)
+  .then( res => {
+    console.log(res.data.result);
+    if(res.data.result === "success"){
+      swal("Success!", res.data.message, "success").then(value => {
+        this.props.history.push("/login");
+      });
+    } else if (res.data.result === "error") {
+      swal("Error!", res.data.message, "error");
+    }
+  })
+  .cathch(error => {
+    console.log(error);
+    swal("Error!", "Unexpected error", "error")
+  })
+};
   
 showForm = ({
     values,
@@ -143,6 +173,7 @@ showForm = ({
                 confirm_password: ""
               }}
               onSubmit={(values, { setSubmitting }) => {
+                this.submitForm(values, this.props.history);
                 console.log("register.js Formik values= "+values);
                 setSubmitting(false);
               }}
